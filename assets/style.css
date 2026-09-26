@@ -1,0 +1,78 @@
+.stage-copy {
+    width: 100%;
+    cursor: text;
+    overflow-wrap: anywhere;
+}
+
+.stage-copy:focus {
+    outline: 2px dashed #c0841a;
+    outline-offset: 4px;
+}
+
+.stage-copy.is-editing {
+    white-space: pre-wrap;
+}
+
+.download-button {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 50;
+    display: inline-flex;
+    min-height: 50px;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: 1px solid #263f35;
+    border-radius: 8px;
+    background: #263f35;
+    padding: 0 18px;
+    color: #fff;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgb(22 35 29 / 22%);
+    cursor: pointer;
+    transition: background-color 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+}
+
+.download-button svg {
+    width: 19px;
+    height: 19px;
+    flex: none;
+}
+
+.download-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    background: #345747;
+    box-shadow: 0 6px 18px rgb(22 35 29 / 28%);
+}
+
+.download-button:focus-visible {
+    outline: 3px solid #e8b84c;
+    outline-offset: 3px;
+}
+
+.download-button:disabled {
+    cursor: progress;
+    opacity: 0.78;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    clip-path: inset(50%);
+}
+
+@media (max-width: 480px) {
+    .download-button {
+        right: 14px;
+        bottom: 14px;
+        min-height: 46px;
+        padding: 0 14px;
+    }
+}
