@@ -88,22 +88,71 @@ downloadButton?.addEventListener("click", async () => {
         }
 
         await document.fonts.ready;
-        const canvas = await window.html2canvas(document.querySelector("#prisma-flow"), {
+
+        const flowSection = document.querySelector("#prisma-flow");
+        const flowRect = flowSection.getBoundingClientRect();
+        const phaseLabels = Array.from(document.querySelectorAll(".phase")).map((phase) => {
+            const style = getComputedStyle(phase);
+            const rect = phase.getBoundingClientRect();
+            return {
+                text: phase.textContent.trim().toUpperCase(),
+                left: rect.left - flowRect.left,
+                top: rect.top - flowRect.top,
+                width: rect.width,
+                height: rect.height,
+                color: style.color,
+                fontWeight: style.fontWeight,
+                fontFamily: style.fontFamily,
+                fontSize: parseFloat(style.fontSize),
+                letterSpacing: parseFloat(style.letterSpacing) || 0,
+            };
+        });
+
+        const renderedCanvas = await window.html2canvas(flowSection, {
             backgroundColor: "#ffffff",
             scale: 2,
             useCORS: true,
             logging: false,
             onclone: (clonedDocument) => {
-                clonedDocument.querySelectorAll(".phase").forEach((phase) => {
-                    const label = clonedDocument.createElement("span");
-                    label.textContent = phase.textContent.trim();
-                    label.style.cssText = "position:absolute;top:50%;left:50%;white-space:nowrap;transform:translate(-50%,-50%) rotate(-90deg);";
-                    phase.replaceChildren(label);
-                    phase.style.writingMode = "horizontal-tb";
-                    phase.style.transform = "none";
-                    phase.style.padding = "0";
+                clonedDocument.querySelectorAll(".phase").forEach((phase, index) => {
+                    phase.style.height = `${phaseLabels[index].height}px`;
+                    phase.replaceChildren();
                 });
             },
+        });
+
+        const canvas = document.createElement("canvas");
+        canvas.width = renderedCanvas.width;
+        canvas.height = renderedCanvas.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(renderedCanvas, 0, 0);
+        const pixelScale = canvas.width / flowRect.width;
+
+        phaseLabels.forEach(({ text, left, top, width, height, color, fontWeight, fontFamily, fontSize, letterSpacing }) => {
+            const cx = (left + width / 2) * pixelScale;
+            const cy = (top + height / 2) * pixelScale;
+            const scaledFontSize = fontSize * pixelScale;
+            const scaledSpacing = letterSpacing * pixelScale;
+
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillStyle = color;
+            ctx.font = `${fontWeight} ${scaledFontSize}px ${fontFamily}`;
+            ctx.textAlign = "left";
+            ctx.textBaseline = "middle";
+
+            const chars = Array.from(text);
+            const widths = chars.map((char) => ctx.measureText(char).width);
+            const totalWidth = widths.reduce((sum, w) => sum + w, 0) + scaledSpacing * (chars.length - 1);
+
+            let x = -totalWidth / 2;
+            chars.forEach((char, index) => {
+                ctx.fillText(char, x, 0);
+                x += widths[index] + scaledSpacing;
+            });
+
+            ctx.restore();
         });
 
         const imageBlob = await new Promise((resolve, reject) => {
